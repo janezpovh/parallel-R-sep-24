@@ -7,7 +7,9 @@ processes <- 4
 # Load parallel library ----
 library(parallel)
 
-cl <- parallel::makeForkCluster(processes)
+if (Sys.info()["sysname"]=="Linux"){
+  cl <- parallel::makeForkCluster(processes)
+} else cl <- makeCluster(processes, type="PSOCK")  
 
 # Defining functions ----
 
