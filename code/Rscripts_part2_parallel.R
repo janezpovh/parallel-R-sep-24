@@ -152,12 +152,6 @@ time_sapply<-system.time({
   sum_rand_sapply=sapply(rep(N,K),FUN=mat_sum)
 })
 
-# forking
-time_mcLapply<-system.time({
-  set.seed(2021)
-#  sum_rand_mcLapply=mclapply(X=rep(N,K),FUN=mat_sum,mc.cores = 12)
-  sum_rand_mcLapply=mclapply(X=rep(N,K),FUN=mat_sum,mc.cores = 2)
-})
 
 #forking with foreach dopar
 #library(doMC) # should be included in doParallel, but is not
@@ -234,17 +228,23 @@ microbenchmark::microbenchmark(
 
 
 
-mc_lapply_f = function(ncores=2,N,K){
-  set.seed(2021)
-  sum_rand_mcLapply=mclapply(X=rep(N,K),FUN=mat_sum,mc.cores = ncores)
+if (Sys.info()["sysname"]=="Linux"){
+  # forking
+  time_mcLapply<-system.time({
+    set.seed(2021)
+    #  sum_rand_mcLapply=mclapply(X=rep(N,K),FUN=mat_sum,mc.cores = 12)
+    sum_rand_mcLapply=mclapply(X=rep(N,K),FUN=mat_sum,mc.cores = 2)
+  })
+  mc_lapply_f = function(ncores=2,N,K){
+    set.seed(2021)
+    sum_rand_mcLapply=mclapply(X=rep(N,K),FUN=mat_sum,mc.cores = ncores)
+  }
+  
+  l_lapply_f = function(ncores=2,N,K){
+    clust <- makeCluster(ncores, type="PSOCK")  
+    set.seed(2021)
+    sum_rand_parSapply=parSapply(clust,rep(N,K),FUN=mat_sum)
+    stopCluster(clust)
+  }
+ times<-microbenchmark::microbenchmark(mc_lapply_f(10,100,10),l_lapply_f(10,100,10))
 }
-
-l_lapply_f = function(ncores=2,N,K){
-  clust <- makeCluster(ncores, type="PSOCK")  
-  set.seed(2021)
-  sum_rand_parSapply=parSapply(clust,rep(N,K),FUN=mat_sum)
-  stopCluster(clust)
-}
-
-times<-microbenchmark::microbenchmark(mc_lapply_f(10,100,10),l_lapply_f(10,100,10))
-
