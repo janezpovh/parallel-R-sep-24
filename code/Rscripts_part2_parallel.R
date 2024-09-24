@@ -183,9 +183,15 @@ time_parSapply<-system.time({
 })
 stopCluster(clust)
 
-
+if (Sys.info()["sysname"]=="Linux"){
+  # forking
+  time_mcLapply<-system.time({
+    set.seed(2021)
+    #  sum_rand_mcLapply=mclapply(X=rep(N,K),FUN=mat_sum,mc.cores = 12)
+    sum_rand_mcLapply=mclapply(X=rep(N,K),FUN=mat_sum,mc.cores = 2)
+  })
+} else {time_mcLapply="NA"} 
 times_apply<-rbind(time_lapply,time_sapply,time_parLapply,time_parSapply,time_mcLapply) 
-#times_apply<-rbind(time_lapply,time_sapply,time_parLapply,time_parSapply,time_mcLapply,time_foreach_dopar_fork) 
 print(times_apply[,1:3])
 
 
@@ -204,37 +210,16 @@ res <- lapply(1:25, f)
 t1=toc()
 #> 5.025 sec elapsed
 
-tic()
-res <- mclapply(1:25, f, mc.cores = 5)
-t2=toc()
+if (Sys.info()["sysname"]=="Linux"){
+  tic()
+  res <- mclapply(1:25, f, mc.cores = 5)
+  t2=toc()
 #> 1.019 sec elapsed
-
-
-microbenchmark::microbenchmark(
-  for_loop = for_loop(resolution = resolution,
-                      max_iter = max_iter,
-                      cmin = cmin,
-                      cmax = cmax),
-  for_c = for_loop_c(resolution = resolution,
-                     max_iter = max_iter,
-                     cmin = cmin,
-                     cmax = cmax),
-  `c` =  Mandelbrot(resolution = resolution,
-                    max_iter = max_iter,
-                    cmin = cmin,
-                    cmax = cmax),
-  times = 2
-)
+}
 
 
 
 if (Sys.info()["sysname"]=="Linux"){
-  # forking
-  time_mcLapply<-system.time({
-    set.seed(2021)
-    #  sum_rand_mcLapply=mclapply(X=rep(N,K),FUN=mat_sum,mc.cores = 12)
-    sum_rand_mcLapply=mclapply(X=rep(N,K),FUN=mat_sum,mc.cores = 2)
-  })
   mc_lapply_f = function(ncores=2,N,K){
     set.seed(2021)
     sum_rand_mcLapply=mclapply(X=rep(N,K),FUN=mat_sum,mc.cores = ncores)
