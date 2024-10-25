@@ -231,5 +231,5 @@ if (Sys.info()["sysname"]=="Linux"){
     sum_rand_parSapply=parSapply(clust,rep(N,K),FUN=mat_sum)
     stopCluster(clust)
   }
- times<-microbenchmark::microbenchmark(mc_lapply_f(10,100,10),l_lapply_f(10,100,10))
+ times<-microbenchmark::microbenchmark(mc_lapply_f(10,100,10),l_lapply_f(10,100,10),times = 2)
 }
